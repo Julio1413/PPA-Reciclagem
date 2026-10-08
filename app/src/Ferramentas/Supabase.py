@@ -5,6 +5,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 import Ferramentas
 
+print('='*20)
+print('Módulo Ferramentas')
+
 # Pasta padrão usada por este módulo e pelo Auth.py (sessão, arquivos locais etc.)
 
 URL_SUPABASE = 'https://fcbtecufrukxbmtngktc.supabase.co'

@@ -2,6 +2,9 @@ import flet as ft, os, platform
 import json
 # padding geral da ui
 
+print('='*20)
+print('Módulo Ferramentas')
+
 _Pasta_Global = None
 def DefinirPasta():
     global _Pasta_Global
