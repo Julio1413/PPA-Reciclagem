@@ -1,69 +1,79 @@
-# App app
+# ReciclaJá Valença
 
-## Run the app
+O ReciclaJá Valença é um aplicativo em desenvolvimento para aproximar pessoas que disponibilizam materiais recicláveis de catadores e pontos de coleta. A proposta é facilitar o encaminhamento de recicláveis e incentivar o descarte correto no município de Valença.
 
-### uv
+Este projeto está em desenvolvimento. Os requisitos abaixo representam o escopo planejado e podem ainda não estar disponíveis na aplicação.
 
-Run as a desktop app:
+## Objetivos e funcionalidades previstas
 
-```bash
-uv run flet run
-```
+- Cadastro e login em uma conta única, sem separar usuários por categoria.
+- Mapa interativo para localizar pontos de coleta e fontes de materiais.
+- Agendamento de coletas.
+- Conteúdos educativos sobre separação e preparação de materiais recicláveis.
+- Histórico de materiais coletados ou disponibilizados.
+- Avaliações entre as pessoas que participam das coletas e entregas.
 
-Run as a web app:
+## Estado atual
 
-```bash
-uv run flet run --web
-```
+A estrutura atual inclui telas de login e cadastro, navegação para a página inicial e para o mapa, integração de autenticação com Supabase e uso da localização do dispositivo. As demais funcionalidades estão previstas nos requisitos do projeto e podem estar em implementação.
 
-For more details on running the app, refer to the [Getting Started Guide](https://flet.dev/docs/).
+## Tecnologias
 
-## Build the app
+- Python 3.10 ou superior
+- [Flet](https://flet.dev/) 1.0
+- Flet CLI para execução e empacotamento
+- Supabase para autenticação e acesso a dados
+- Flet Geolocator para recursos de localização
 
-### Android
+## Como executar
 
-```bash
-flet build apk -v
-```
+Use Python 3.10 ou superior e tenha o Flet CLI e as dependências do projeto instalados no ambiente Python. Execute os comandos a seguir no diretório `app`.
 
-For more details on building and signing `.apk` or `.aab`, refer to the [Android Packaging Guide](https://flet.dev/docs/publish/android/).
-
-### iOS
-
-```bash
-flet build ipa -v
-```
-
-For more details on building and signing `.ipa`, refer to the [iOS Packaging Guide](https://flet.dev/docs/publish/ios/).
-
-### macOS
+Inicie o aplicativo para desktop:
 
 ```bash
-flet build macos -v
+flet run
 ```
 
-For more details on building macOS package, refer to the [macOS Packaging Guide](https://flet.dev/docs/publish/macos/).
-
-### Linux
+Para executar no navegador:
 
 ```bash
-flet build linux -v
+flet run --web
 ```
 
-For more details on building Linux package, refer to the [Linux Packaging Guide](https://flet.dev/docs/publish/linux/).
+O aplicativo utiliza serviços do Supabase. As credenciais da aplicação são definidas em `src/Ferramentas/Supabase.py`; não inclua chaves privadas ou credenciais administrativas em commits ou distribuições públicas.
 
-### Windows
+## Testes
+
+Execute a suíte de testes a partir do diretório `app`:
 
 ```bash
-flet build windows -v
+pytest
 ```
 
-For more details on building Windows package, refer to the [Windows Packaging Guide](https://flet.dev/docs/publish/windows/).
+## Estrutura do projeto
 
-### Web
+```text
+app/
+├── src/
+│   ├── Ferramentas/   # Autenticação, acesso ao Supabase e utilitários
+│   ├── Pages/         # Telas e recursos de interface
+│   ├── assets/        # Recursos visuais
+│   └── main.py        # Inicialização e rotas do aplicativo
+├── tests/             # Testes automatizados
+├── pyproject.toml     # Dependências e configurações
+└── README.md
+```
+
+## Empacotamento
+
+Os comandos abaixo podem ser usados para gerar builds com o Flet. Execute-os no diretório `app`:
 
 ```bash
-flet build web -v
+flet build apk -v      # Android
+flet build linux -v    # Linux
+flet build windows -v  # Windows
+flet build web -v      # Web
 ```
 
-For more details on building Web app, refer to the [Web Packaging Guide](https://flet.dev/docs/publish/web/).
+Consulte a [documentação do Flet](https://flet.dev/docs/) para detalhes sobre execução e publicação em cada plataforma.
