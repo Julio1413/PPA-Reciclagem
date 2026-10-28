@@ -1,11 +1,32 @@
 import flet as ft
 import flet_map as ftm
 from Pages import Ui, MapUtilities
+from Ferramentas import Supabase
 import requests
 
 
 async def Mapa(page):
-    
+    marcadores_carregar = Supabase.LerTabela('PontosColeta', {'Reservado': 'eq.False'})
+    print(marcadores_carregar)
+
+    marcadores = []
+
+    if marcadores_carregar is None:
+        raise RuntimeError('Não foi possível carregar os pontos de coleta.')
+
+    for marcador in marcadores_carregar:
+        marcador_latitude = float(marcador['Latitude'])
+        marcador_longitude = float(marcador['Longitude'])
+        marker = ftm.Marker(
+            coordinates=ftm.MapLatitudeLongitude(latitude=marcador_latitude, longitude=marcador_longitude),
+            content=ft.Icon(
+                ft.Icons.LOCATION_PIN,
+                color=Ui.CorDeFundoSalva(),
+                size=30,
+            ),
+        )
+        marcadores.append(marker)
+
     loc = await MapUtilities.ObterLocalizacao(page)
     print(loc)
     mapa = ftm.Map(
@@ -19,18 +40,9 @@ async def Mapa(page):
                 on_image_error=lambda e: print(f"TileLayer Error: {e.data}"),
             ),
             ftm.MarkerLayer(
-                markers=[
-                    ftm.Marker(
-                        coordinates=ftm.MapLatitudeLongitude(latitude=loc['latitude'],longitude=loc['longitude']),
-                        content=ft.Icon(
-                            ft.Icons.LOCATION_PIN,
-                            color=Ui.CorDeFundoSalva(),
-                            size=30,
-                        ),
-                    )
-                ]
+                markers=marcadores
             ),
-            #ftm.SimpleAttribution(text="OpenStreetMap contributors"),
+            ftm.SimpleAttribution(text="OpenStreetMap contributors",bgcolor=ft.Colors.TRANSPARENT,text_style=ft.TextStyle(color=ft.Colors.BLACK, size=10)),
 
         ],
     )

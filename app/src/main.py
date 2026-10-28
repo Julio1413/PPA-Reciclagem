@@ -1,9 +1,7 @@
 import flet as ft
 import os
-from Ferramentas import Ferramentas
+from Ferramentas import Ferramentas, Supabase
 from Pages.Ui import NomeDoApp, ObterLocalizacaoCompleta
-
-
 os.makedirs(Ferramentas.DefinirPasta(), exist_ok=True)
 from Ferramentas import Auth
 
@@ -20,7 +18,7 @@ def main(page: ft.Page):
     ObterLocalizacaoCompleta(page, on_result=_AoReceberLocalizacao)
     page.title = NomeDoApp()
     page.theme_mode = ft.ThemeMode.SYSTEM
-    page.scroll = 'none'
+    page.scroll = ft.ScrollMode.HIDDEN
     page.theme = ft.Theme(
         page_transitions=ft.PageTransitionsTheme(
             linux=ft.PageTransitionTheme.CUPERTINO,
