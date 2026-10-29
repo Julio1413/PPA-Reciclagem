@@ -28,9 +28,51 @@ async def Mapa(page):
         marcadores.append(marker)
 
     loc = await MapUtilities.ObterLocalizacao(page)
-    print(loc)
+    marcadores.append(
+        ftm.Marker(
+            coordinates=ftm.MapLatitudeLongitude(latitude=loc['latitude'], longitude=loc['longitude']),
+            content=ft.Stack(alignment=ft.Alignment.CENTER,
+                controls=[
+                    ft.Icon(
+                        ft.Icons.CIRCLE,
+                        color=ft.Colors.LIGHT_GREEN,
+                        size=23,
+                    ),
+                    ft.Icon(
+                        ft.Icons.CIRCLE,
+                        color=Ui.CorDeFundoSalva(),
+                        size=15,
+                    ),
+                ]
+            )
+        )
+    )
+
+
+
+    def SelecionarLocal(e: ftm.MapTapEvent):
+        lat = e.coordinates.latitude
+        lon = e.coordinates.longitude
+        print(f"Local selecionado: Latitude: {lat}, Longitude: {lon}")
+
+        marcadores.append(
+            ftm.Marker(
+                coordinates=e.coordinates,
+                content=ft.Icon(
+                    ft.Icons.LOCATION_ON,
+                    color=ft.Colors.RED,
+                    size=35,
+                ),
+            )
+        )
+
+        page.update()
+
+
     mapa = ftm.Map(
+        max_zoom=20,
         min_zoom=15,
+        on_long_press=SelecionarLocal,
         initial_zoom=15,
         expand=True,
         layers=[
