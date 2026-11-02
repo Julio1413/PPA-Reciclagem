@@ -46,10 +46,10 @@ def TestarConexao(tabela_teste="login"):
         return None
 
 
-def LerTabela(nome_tabela, filtros=None):
+def LerTabela(nome_tabela, filtros=None) -> list:
     url, key = ObterCredenciais()
     if not url or not key:
-        return None
+        return []
     try:
         r = requests.get(
             f"{url}/rest/v1/{nome_tabela}",
@@ -58,10 +58,10 @@ def LerTabela(nome_tabela, filtros=None):
             timeout=30,
             verify=False,
         )
-        return r.json() if r.status_code == 200 else None
+        return r.json() if r.status_code == 200 else []
     except Exception as e:
         print("ERRO LerTabela:", e)
-        return None
+        return []
 
 
 def InserirLinha(nome_tabela, dados: dict):

@@ -88,15 +88,17 @@ async def Mapa(page):
             
 
         def Cancelar(e):
+            marcadores.pop(-1)
             sheet.open = False
             page.update()
         #sheet
         
         titulo = ft.TextField(label='Título',border_radius=10,width=page.width,keyboard_type=ft.KeyboardType.TEXT,border_color=ft.Colors.TRANSPARENT)
 
-        descricao = ft.TextField(hint_text=' 1. Descreva o ponto de coleta\n 2. Descreva os materiais disponíveis',border_color=ft.Colors.TRANSPARENT,autocorrect=True,label='Descrição',multiline=True,keyboard_type=ft.KeyboardType.TEXT,width=page.width,border_radius=10,height=200)
+        descricao = ft.TextField(hint_text=' 1. Descreva o ponto de coleta;\n 2. Descreva os materiais disponíveis.',border_color=ft.Colors.TRANSPARENT,autocorrect=True,label='Descrição',multiline=True,keyboard_type=ft.KeyboardType.TEXT,width=page.width,border_radius=10,height=200)
 
         sheet = ft.CupertinoBottomSheet(
+            on_dismiss=lambda e: Cancelar(e),
             content=ft.Column(
                 height=page.height * 0.785,
                 spacing=10,
