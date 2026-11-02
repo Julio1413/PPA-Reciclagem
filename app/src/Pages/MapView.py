@@ -1,11 +1,29 @@
 import flet as ft
 import flet_map as ftm
 from Pages import Ui, MapUtilities
-from Ferramentas import Supabase
-import requests
+from Ferramentas import Supabase, Auth
+import datetime
+
+
+def _FormatarCoordenada(valor):
+    texto = str(valor)
+    resultado = []
+    digitos = 0
+
+    for caractere in texto:
+        if caractere.isdigit():
+            if digitos == 10:
+                break
+            digitos += 1
+
+        resultado.append(caractere)
+
+    return ''.join(resultado)
 
 
 async def Mapa(page):
+    
+    credenciais = Auth.ObterSessao()
     marcadores_carregar = Supabase.LerTabela('PontosColeta', {'Reservado': 'eq.False'})
     print(marcadores_carregar)
 
@@ -28,45 +46,207 @@ async def Mapa(page):
         marcadores.append(marker)
 
     loc = await MapUtilities.ObterLocalizacao(page)
-    marcadores.append(
-        ftm.Marker(
-            coordinates=ftm.MapLatitudeLongitude(latitude=loc['latitude'], longitude=loc['longitude']),
-            content=ft.Stack(alignment=ft.Alignment.CENTER,
+
+    
+
+
+
+
+    #Selecionar e adicionar localização ao clicar no mapa
+    def AbrirDialogo(longitude,latitude):
+        def Salvar(e):
+            if titulo.value and descricao.value:
+                try:
+                                
+                    Supabase.InserirLinha(
+                        'PontosColeta',
+                        {   'EmailCriador': credenciais['email'],
+                            'NomeCriador': credenciais['nome'],
+                            'Titulo': titulo.value,
+                            'Descrição': descricao.value,
+                            'Latitude': latitude,
+                            'Longitude': longitude,
+                            'Reservado': 'False',
+                            'ReservadoPor' : 'Ninguém',
+                            'Criado': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            'Finalizado': 'False',
+                        }
+                    )
+                    Ui.IrPara('/',page)
+                    Ui.IrPara('/mapa',page)
+                    page.show_dialog(ft.SnackBar(ft.Text('Ponto de coleta adicionado com sucesso!'), open=True, bgcolor=ft.Colors.GREEN))
+                    Cancelar(e)
+
+                except:
+                    page.show_dialog(ft.SnackBar(ft.Text('Erro ao adicionar ponto de coleta.'), open=True, bgcolor=ft.Colors.RED))
+                    Cancelar(e)
+            else:
+                Cancelar(e)
+                page.show_dialog(ft.SnackBar(ft.Text('Preencha todos os campos!'), open=True, bgcolor=ft.Colors.RED))
+
+
+            
+
+        def Cancelar(e):
+            sheet.open = False
+            page.update()
+        #sheet
+        
+        titulo = ft.TextField(label='Título',border_radius=10,width=page.width,keyboard_type=ft.KeyboardType.TEXT,border_color=ft.Colors.TRANSPARENT)
+
+        descricao = ft.TextField(hint_text=' 1. Descreva o ponto de coleta\n 2. Descreva os materiais disponíveis',border_color=ft.Colors.TRANSPARENT,autocorrect=True,label='Descrição',multiline=True,keyboard_type=ft.KeyboardType.TEXT,width=page.width,border_radius=10,height=200)
+
+        sheet = ft.CupertinoBottomSheet(
+            content=ft.Column(
+                height=page.height * 0.785,
+                spacing=10,
                 controls=[
-                    ft.Icon(
-                        ft.Icons.CIRCLE,
-                        color=ft.Colors.LIGHT_GREEN,
-                        size=23,
+                    ft.Container(
+                        margin=ft.Margin.only(left=10,right=10),
+                        padding=0,
+                        content=ft.Container(
+                            border_radius=ft.BorderRadius.all(20),
+                            bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
+                            blur=(10, 10),
+                            padding=15,
+                            height=page.height * 0.6,
+                            width=page.width,
+                            margin=0,
+
+                            content=ft.Column(
+                                controls=[
+                                    #Controles do dialogo
+                                    ft.Row(
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                        controls=[
+                                            ft.Text('Adicionar Ponto de Coleta', size=15, weight=ft.FontWeight.BOLD),
+                                            ft.Icon(icon=ft.Icons.LOCATION_ON_ROUNDED, color=Ui.CorDeFundoSalva(), size=25),
+                                        ]
+                                    ),
+                                    ft.Divider(),
+                                    ft.Row(
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                        controls=[
+                                            ft.Text(f'Latitude: {_FormatarCoordenada(latitude)}', size=12),
+                                            ft.Text(f'Longitude: {_FormatarCoordenada(longitude)}', size=12),
+                                        ]
+                                    ),
+                                    ft.Divider(),
+                                    #Conteúdo do dialogo
+
+                                    titulo,
+                                    descricao,
+                                ]
+                            )
+                        )
                     ),
-                    ft.Icon(
-                        ft.Icons.CIRCLE,
-                        color=Ui.CorDeFundoSalva(),
-                        size=15,
+
+
+                    #Salvar
+                    ft.Container(
+                        on_click=lambda e: Salvar(e),
+                        margin=ft.Margin.only(left=10,right=10),
+                        padding=0,
+                        content=ft.Container(
+                            border_radius=ft.BorderRadius.all(20),
+                            bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
+                            blur=(10, 10),
+                            padding=0,
+                            height=50,
+                            width=page.width,
+                            margin=0,
+
+                            content=ft.Row(
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                controls=[
+                                    ft.Text('Salvar',size=20),
+                                ]
+                            )
+                        )
                     ),
+                    #Cancelar
+                    ft.Container(
+                        on_click=lambda e: Cancelar(e),
+                        margin=ft.Margin.only(left=10,right=10),
+                        padding=0,
+                        content=ft.Container(
+                            border_radius=ft.BorderRadius.all(20),
+                            bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
+                            blur=(10, 10),
+                            padding=0,
+                            height=50,
+                            width=page.width,
+                            margin=0,
+
+                            content=ft.Row(
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                controls=[
+                                    ft.Text('Cancelar',size=20),
+                                ]
+                            )
+                        )
+                    ),
+
+                    
                 ]
             )
         )
-    )
+        
+        page.overlay.append(sheet)
+        sheet.open = True
+        #Tela para adicionar
 
+        marcadores.append(
+                    ftm.Marker(
+                        coordinates=ftm.MapLatitudeLongitude(latitude=latitude, longitude=longitude),
+                        content=ft.Icon(
+                            ft.Icons.LOCATION_ON,
+                            color=ft.Colors.RED,
+                            size=35,
+                        ),
+                    )
+                )
+    
+        page.update()
+        
+            
 
 
     def SelecionarLocal(e: ftm.MapTapEvent):
         lat = e.coordinates.latitude
         lon = e.coordinates.longitude
         print(f"Local selecionado: Latitude: {lat}, Longitude: {lon}")
+        AbrirDialogo(lon,lat)
+        page.update()
 
-        marcadores.append(
-            ftm.Marker(
-                coordinates=e.coordinates,
-                content=ft.Icon(
-                    ft.Icons.LOCATION_ON,
-                    color=ft.Colors.RED,
-                    size=35,
-                ),
+
+
+    def SelecionarSuaLocalicacao():
+        AbrirDialogo(loc['longitude'],loc['latitude'])
+        page.update()
+
+
+    #Marcador de local
+    marcadores.append(
+        ftm.Marker(
+            coordinates=ftm.MapLatitudeLongitude(latitude=loc['latitude'], longitude=loc['longitude']),
+            content=ft.Stack(alignment=ft.Alignment.CENTER,
+                controls=[
+                    ft.IconButton(
+                        icon=ft.Icons.CIRCLE,
+                        icon_color=Ui.CorDeFundoSalva(),
+                        on_click=lambda e:SelecionarSuaLocalicacao(),
+                        tooltip="Sua localização!",
+                        scale=0.8
+                    ),
+                    
+                   
+                ]
             )
         )
+    )
 
-        page.update()
+
 
 
     mapa = ftm.Map(

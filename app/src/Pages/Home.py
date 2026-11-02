@@ -1,11 +1,34 @@
 import asyncio
 import flet as ft
-import requests
+import requests, math
 from Pages import Ui, MapUtilities
 from Ferramentas import Auth
 
 print('='*20)
 print('Tela inicial')
+
+def CalcularDistancia(coord1, coord2):
+    """
+    Recebe duas coordenadas (latitude, longitude)
+    e retorna a distância entre elas em quilômetros.
+    """
+
+    lat1, lon1 = map(math.radians, coord1)
+    lat2, lon2 = map(math.radians, coord2)
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2)
+        * math.sin(dlon / 2) ** 2
+    )
+
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    return 6371 * c
+
 
 def ObtercidadeIp():
     resposta = requests.get("http://ip-api.com/json/", timeout=10)
@@ -20,6 +43,13 @@ def ObtercidadeIp():
 
 def Inicio (page):
 
+    loc = None
+    async def ObterLocalizacao():
+        nonlocal loc
+        loc = await MapUtilities.ObterLocalizacao(page)
+        print(loc)
+
+    page.run_task(ObterLocalizacao)
     texto_localizacao = ft.Text('Obtendo localização...', size=15, color=ft.Colors.WHITE)
 
     async def _CarregarCidadeIp():
@@ -84,6 +114,9 @@ def Inicio (page):
                                     )
                                 )
                             ),
+                            ft.Placeholder(color=ft.Colors.TRANSPARENT, height=10),
+                            ft.Text('Pontos em um raio de 1 Km'),
+                            ft.Divider(),
                         ]
                     ),
                 ]

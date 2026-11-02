@@ -11,6 +11,7 @@ print('='*20)
 print('Aplicação iniciada')
 
 def main(page: ft.Page):
+    print(page.platform_brightness)
     #Definições da página
     def _AoReceberLocalizacao(dados):
         print("Localização obtida:", dados)
@@ -19,30 +20,29 @@ def main(page: ft.Page):
     page.title = NomeDoApp()
     page.theme_mode = ft.ThemeMode.SYSTEM
     page.scroll = ft.ScrollMode.HIDDEN
-    page.theme = ft.Theme(
-        page_transitions=ft.PageTransitionsTheme(
-            linux=ft.PageTransitionTheme.CUPERTINO,
-            windows=ft.PageTransitionTheme.CUPERTINO,
-            android=ft.PageTransitionTheme.CUPERTINO,
-            ios=ft.PageTransitionTheme.CUPERTINO,
-        )
-    )
 
     
     page.fonts = {
-        'Times':'/assets/times.ttf'
+        'Poppins':'assets/fonts/Poppins.ttf'
     }
     
     page.theme = ft.Theme(
+        font_family='Poppins',
         color_scheme_seed=ft.Colors.GREEN,
+        page_transitions=ft.PageTransitionsTheme(
+            linux=ft.PageTransitionTheme.OPEN_UPWARDS,
+            windows=ft.PageTransitionTheme.OPEN_UPWARDS,
+            android=ft.PageTransitionTheme.OPEN_UPWARDS,
+            ios=ft.PageTransitionTheme.OPEN_UPWARDS,
         )
+    )
 
     #Sistema de roteamento
     def route(e=None):
         arquivos = ['sessao.json','.sessao_tokens.json']
 
 
-        if not Ferramentas.ArquivosExistem(arquivos) or not Auth.ObterSessao():
+        if not Ferramentas.ArquivosExistem(arquivos) or not Auth.ObterSessao() or Auth.VerificarUsuarioExistente() == False:
             Ferramentas.DeletarArquivos(arquivos)
             if page.route == '/login1':
                 from Pages import Login

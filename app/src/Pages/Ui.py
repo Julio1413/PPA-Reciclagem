@@ -124,15 +124,24 @@ def Cabecalho(
     ),
     ft.Placeholder(color=ft.Colors.TRANSPARENT, height=5)
                                ])
+def TextColor(page,opacidade:float|int=1):
+    """Retorna a cor do container de acordo com o tema de cor do dispositivo"""
 
-def ContainerColor(page):
+    if page.theme_mode == ft.ThemeMode.DARK:
+        container_color = ft.Colors.WHITE
+    else:
+        container_color = ft.Colors.BLACK_87
+    return ft.Colors.with_opacity(opacidade, container_color)
+
+
+def ContainerColor(page,opacidade:float|int=1):
     """Retorna a cor do container de acordo com o tema de cor do dispositivo"""
 
     if page.theme_mode == ft.ThemeMode.LIGHT:
         container_color = ft.Colors.WHITE
     else:
         container_color = ft.Colors.BLACK_87
-    return container_color
+    return ft.Colors.with_opacity(opacidade, container_color)
 
 def Container(
                 page,

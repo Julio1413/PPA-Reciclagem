@@ -552,6 +552,109 @@ def UsuarioLogado():
     )
 
 
+def VerificarUsuarioExistente():
+    """
+    Consulta o Supabase usando os tokens salvos e renova o access token
+    expirado quando ainda há um refresh token válido.
+
+    Retorna True se o servidor confirmar o usuário, False se não houver
+    sessão válida, e None em caso de erro no servidor ou na conexão.
+    """
+
+    url, key = ObterCredenciais()
+    tokens = _ObterTokens()
+
+    if not url or not key or not tokens:
+        return False
+
+    access_token = tokens.get("access_token")
+    refresh_token = tokens.get("refresh_token")
+
+    if not access_token:
+        return False
+
+    try:
+
+        r = requests.get(
+            f"{url}/auth/v1/user",
+            headers=_headers_autenticado(
+                key,
+                access_token
+            ),
+            timeout=30,
+            verify=False,
+        )
+
+        if r.status_code == 200:
+            return True
+
+        if r.status_code == 404:
+            return False
+
+        if r.status_code != 401:
+            print(f"ERRO VerificarUsuarioExistente: status {r.status_code}")
+            return None
+
+        if not refresh_token:
+            return False
+
+        resposta_refresh = requests.post(
+            f"{url}/auth/v1/token?grant_type=refresh_token",
+            headers=_headers_auth(key),
+            json={"refresh_token": refresh_token},
+            timeout=30,
+            verify=False,
+        )
+
+        if resposta_refresh.status_code in (400, 401, 403):
+            return False
+
+        if resposta_refresh.status_code != 200:
+            print(
+                "ERRO VerificarUsuarioExistente ao renovar token: "
+                f"status {resposta_refresh.status_code}"
+            )
+            return None
+
+        novos_tokens = resposta_refresh.json()
+        if not isinstance(novos_tokens, dict) or not novos_tokens.get("access_token"):
+            print("ERRO VerificarUsuarioExistente: resposta de renovação sem access token")
+            return None
+
+        _SalvarTokens(novos_tokens)
+
+        resposta_usuario = requests.get(
+            f"{url}/auth/v1/user",
+            headers=_headers_autenticado(
+                key,
+                novos_tokens["access_token"]
+            ),
+            timeout=30,
+            verify=False,
+        )
+
+        if resposta_usuario.status_code == 200:
+            return True
+
+        if resposta_usuario.status_code in (401, 404):
+            return False
+
+        print(
+            "ERRO VerificarUsuarioExistente após renovar token: "
+            f"status {resposta_usuario.status_code}"
+        )
+        return None
+
+    except requests.RequestException as e:
+
+        print(
+            "ERRO VerificarUsuarioExistente:",
+            e
+        )
+
+        return None
+
+
 # ============================================================
 # OBTER SESSÃO
 # ============================================================

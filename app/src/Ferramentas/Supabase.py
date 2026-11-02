@@ -125,7 +125,7 @@ def InserirLog(mensagem: str):
     log = {
         "mensagem": mensagem,
         "registrado_em": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-        "autor": Ferramentas.ler_arquivo('NOME.txt'),
+        "autor": Ferramentas.LerArquivo('NOME.txt'),
     }
     InserirLinha('logs', log)
     return log
