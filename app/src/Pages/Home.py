@@ -47,12 +47,7 @@ def ObtercidadeIp():
 def Inicio (page):
     #Serviço de localização
     loc = None
-    async def ObterLocalizacao():
-        nonlocal loc
-        loc = await MapUtilities.ObterLocalizacao(page)
-
-
-    page.run_task(ObterLocalizacao)
+ 
     texto_localizacao = ft.Text('Obtendo localização...', size=15, color=ft.Colors.WHITE)
 
     async def _CarregarCidadeIp():
@@ -86,6 +81,7 @@ def Inicio (page):
             ):
                 pass
             sheet.open = False
+            page.run_task(ObterLocalizacao)
             page.update()
 
 
@@ -202,7 +198,7 @@ def Inicio (page):
         nonlocal loc
         loc = await MapUtilities.ObterLocalizacao(page)
         locais = Supabase.LerTabela('PontosColeta',{'Reservado': 'eq.False'})
-
+        colunalocais.controls.clear()
 
         for local in locais:
             #Informações detalhadas
