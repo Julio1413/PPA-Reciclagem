@@ -1,36 +1,16 @@
 import asyncio
 import flet as ft
-import requests, math
+import requests
 from Pages import Ui, MapUtilities, MapView
-from Ferramentas import Auth, Supabase
+from Ferramentas import Auth, Supabase, Ferramentas
+
 
 print('='*20)
 print('Tela inicial')
 
 
 #Funcoes auxiliares
-def CalcularDistancia(coord1, coord2):
-    """
-    Recebe duas coordenadas (latitude, longitude)
-    e retorna a distância entre elas em quilômetros.
-    """
 
-    lat1, lon1 = map(math.radians, coord1)
-    lat2, lon2 = map(math.radians, coord2)
-
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-
-    a = (
-        math.sin(dlat / 2) ** 2
-        + math.cos(lat1) * math.cos(lat2)
-        * math.sin(dlon / 2) ** 2
-    )
-
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-    print(f'Distancia entre {coord1} e {coord2}: {6371 * c:.2f} km')
-    return 6371 * c
 
 
 def ObtercidadeIp():
@@ -69,129 +49,7 @@ def Inicio (page):
 
 
     loc = None
-    def Sheet(e,distancia):
-        local = e.control.data
-
-
-        def ReservarEMandarEmail():
-            if Supabase.AtualizarLinha(
-                nome_tabela='PontosColeta',
-                filtros={'id': f"eq.{local['id']}"},
-                novos_dados={'Reservado': 'True', 'ReservadoPor': Auth.ObterSessao()['email']},
-            ):
-                pass
-            sheet.open = False
-            page.run_task(ObterLocalizacao)
-            page.update()
-
-
-        sheet = ft.CupertinoBottomSheet(
-            content=ft.Column(
-                height=page.height * 0.785,
-                spacing=10,
-                controls=[
-                    ft.Container(
-                        margin=ft.Margin.only(left=10,right=10),
-                        padding=0,
-                        content=ft.Container(
-                            border_radius=ft.BorderRadius.all(20),
-                            bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
-                            blur=(10, 10),
-                            padding=15,
-                            height=page.height * 0.6,
-                            width=page.width,
-                            margin=0,
-
-                            content=ft.Column(
-                                controls=[
-                                    #Controles do dialogo
-                                    ft.Row(
-                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                                        controls=[
-                                            ft.Text(local["Titulo"], size=15, weight=ft.FontWeight.BOLD),
-                                            ft.Icon(icon=ft.Icons.LOCATION_ON_ROUNDED, color=Ui.CorDeFundoSalva(), size=25),
-                                        ]
-                                    ),
-                                    ft.Divider(),
-                                    ft.Row(
-                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                                        controls=[
-                                            ft.Text(f'Latitude: {MapView._FormatarCoordenada(local["Latitude"])}', size=12),
-                                            ft.Text(f'Longitude: {MapView._FormatarCoordenada(local["Longitude"])}', size=12),
-                                        ]
-                                    ),
-                                    ft.Divider(),
-                                    ft.Row(
-                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                                        controls=[
-                                            ft.Text(f'Distância: {distancia:.2f} km', size=12),
-                                            ft.Text(f'ID: {local["id"]}', size=12),
-                                        ]
-                                    ),
-                                    ft.Text(f'Autor: {local["NomeCriador"]}', size=12),
-                                    ft.Divider(),
-                                    ft.Text(local["Descrição"], size=12, selectable=True),
-                                    #Conteúdo do dialogo
-
-                                ]
-                            )
-                        )
-                    ),
-
-
-                    #Reservar e mandar e-mail
-                    ft.Container(
-                        on_click=lambda e: ReservarEMandarEmail(),
-                        margin=ft.Margin.only(left=10,right=10),
-                        padding=0,
-                        content=ft.Container(
-                            border_radius=ft.BorderRadius.all(20),
-                            bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
-                            blur=(10, 10),
-                            padding=0,
-                            height=50,
-                            width=page.width,
-                            margin=0,
-
-                            content=ft.Row(
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                controls=[
-                                    ft.Text('Reservar e mandar e-mail',size=20),
-                                ]
-                            )
-                        )
-                    ),
-                    #Cancelar
-                    ft.Container(
-                        on_click=lambda e: None,
-                        margin=ft.Margin.only(left=10,right=10),
-                        padding=0,
-                        content=ft.Container(
-                            border_radius=ft.BorderRadius.all(20),
-                            bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
-                            blur=(10, 10),
-                            padding=0,
-                            height=50,
-                            width=page.width,
-                            margin=0,
-
-                            content=ft.Row(
-                                alignment=ft.MainAxisAlignment.CENTER,
-                                controls=[
-                                    ft.Text('Cancelar',size=20),
-                                ]
-                            )
-                        )
-                    ),
-
-                    
-                ]
-            )
-        )
-        
-        page.overlay.append(sheet)
-        sheet.open = True
-
+    
 
 
     async def ObterLocalizacao():
@@ -204,7 +62,7 @@ def Inicio (page):
             #Informações detalhadas
 
 
-            distancia = CalcularDistancia(
+            distancia = Ferramentas.CalcularDistancia(
                 (float(local['Latitude']), float(local['Longitude'])),
                 (float(loc['latitude']), float(loc['longitude']))
             )
@@ -212,7 +70,9 @@ def Inicio (page):
                 colunalocais.controls.append(
                     ft.Container(
                         ink=True,
-                        on_click=lambda e, distancia=distancia: Sheet(e, distancia),
+                        on_click=lambda e, distancia=distancia: Ui.Sheet(
+                            e, page, distancia=distancia
+                        ),
                         data=local,
                         width=page.width,
                         padding=10,

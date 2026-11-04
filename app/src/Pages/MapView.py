@@ -37,11 +37,17 @@ async def Mapa(page):
         marcador_longitude = float(marcador['Longitude'])
         marker = ftm.Marker(
             coordinates=ftm.MapLatitudeLongitude(latitude=marcador_latitude, longitude=marcador_longitude),
-            content=ft.Icon(
-                ft.Icons.LOCATION_PIN,
-                color=Ui.CorDeFundoSalva(),
-                size=30,
-            ),
+            content=ft.Container(
+                data=marcador,
+                tooltip=marcador['Titulo'],
+                on_click=lambda e: Ui.Sheet(e,page),
+                ink=True,
+                content=ft.Icon(
+                    icon=ft.Icons.LOCATION_PIN,
+                    color=Ui.CorDeFundoSalva(),
+                    size=30
+                )
+            )
         )
         marcadores.append(marker)
 
@@ -109,7 +115,7 @@ async def Mapa(page):
                         content=ft.Container(
                             border_radius=ft.BorderRadius.all(20),
                             bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
-                            blur=(10, 10),
+                            blur=(5, 5),
                             padding=15,
                             height=page.height * 0.6,
                             width=page.width,
@@ -152,7 +158,7 @@ async def Mapa(page):
                         content=ft.Container(
                             border_radius=ft.BorderRadius.all(20),
                             bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
-                            blur=(10, 10),
+                            blur=(5, 5),
                             padding=0,
                             height=50,
                             width=page.width,
@@ -174,7 +180,7 @@ async def Mapa(page):
                         content=ft.Container(
                             border_radius=ft.BorderRadius.all(20),
                             bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
-                            blur=(10, 10),
+                            blur=(5, 5),
                             padding=0,
                             height=50,
                             width=page.width,
@@ -275,6 +281,21 @@ async def Mapa(page):
         longitude=loc['longitude'],
     )
 
+    def PontoZero():
+        
+        
+        async def _MoverEAplicarZoom():
+            await mapa.zoom_to(zoom=15)
+            await mapa.move_to(
+                destination=ftm.MapLatitudeLongitude(
+                    latitude=loc['latitude'],
+                    longitude=loc['longitude'],
+                )
+            )
+
+        page.run_task(_MoverEAplicarZoom)
+
+
     page.views.append(
         ft.View(
             route='/mapa',
@@ -296,8 +317,25 @@ async def Mapa(page):
                     ),
                     ft.Column(
                         alignment=ft.MainAxisAlignment.END,
+                        horizontal_alignment= ft.CrossAxisAlignment.END,
                         height=page.height,
-                        controls=[]
+                        controls=[
+                            ft.Container(
+                                ink=True,
+                                on_click=lambda _:PontoZero(),
+                                bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
+                                blur=(5,5),
+                                border_radius=20,
+                                padding=10,
+                                content=ft.Icon(
+                                    icon=ft.Icons.MY_LOCATION_ROUNDED,
+                                    size=25,
+                                    color=Ui.TextColor(page)
+                                )
+                            ),
+
+                            ft.Placeholder(height=25,color=ft.Colors.TRANSPARENT)
+                        ]
                     ),
                 ])
             ]

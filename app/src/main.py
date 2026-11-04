@@ -1,8 +1,8 @@
 import flet as ft
 import os
 from Ferramentas import Ferramentas, Supabase
-from Pages.Ui import NomeDoApp, ObterLocalizacaoCompleta
 os.makedirs(Ferramentas.DefinirPasta(), exist_ok=True)
+from Pages.Ui import NomeDoApp, ObterLocalizacaoCompleta
 from Ferramentas import Auth
 
 

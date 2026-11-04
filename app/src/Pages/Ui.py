@@ -1,9 +1,10 @@
 import asyncio
-
+from urllib.parse import quote
 import requests
 import flet as ft
 import flet_geolocator as ftg
-from Ferramentas import Ferramentas
+from Ferramentas import Ferramentas, Auth, Supabase
+from Pages import MapView
 
 print('='*20)
 print('Módulo Ui')
@@ -95,6 +96,167 @@ def IrPara(rota, page):
         page.navigate(rota)
     page.update()
 
+
+def Sheet(e,page,distancia=None):
+    local = e.control.data
+    texto_distancia = ft.Text(
+        f'Distância: {distancia:.2f} km'
+        if distancia is not None
+        else 'Calculando distância...',
+        size=12,
+    )
+
+    async def ObterLocalizacao():
+        from Pages import MapUtilities
+        nonlocal distancia
+        try:
+            loc = await MapUtilities.ObterLocalizacao(page)
+            distancia = Ferramentas.CalcularDistancia(
+                (float(local['Latitude']), float(local['Longitude'])),
+                (float(loc['latitude']), float(loc['longitude']))
+            )
+            texto_distancia.value = f'Distância: {distancia:.2f} km'
+            page.update()
+        except Exception:
+            texto_distancia.value = 'Distância indisponível'
+            page.update()
+            raise
+
+    #Fechar diálogo
+    def Fechar():
+        sheet.open=False
+    
+    destinatario = local['EmailCriador']
+    assunto = quote("Solicitação de mais informações.")
+    mensagem = quote(f'Olá! Sou {Auth.ObterSessao()['nome']} e reservei os materiais de "{local['Titulo']}". Poderia me dar mais informações para a coleta?' )
+
+    link = f"mailto:{destinatario}?subject={assunto}&body={mensagem}"
+    
+
+    def ReservarEMandarEmail():
+        
+        if Supabase.AtualizarLinha(
+            nome_tabela='PontosColeta',
+            filtros={'id': f"eq.{local['id']}"},
+            novos_dados={'Reservado': 'True', 'ReservadoPor': Auth.ObterSessao()['email']},
+        ):
+            pass
+        sheet.open = False
+        page.update()
+
+
+    sheet = ft.CupertinoBottomSheet(
+        content=ft.Column(
+            height=page.height * 0.785,
+            spacing=10,
+            controls=[
+                ft.Container(
+                    margin=ft.Margin.only(left=10,right=10),
+                    padding=0,
+                    content=ft.Container(
+                        border_radius=ft.BorderRadius.all(20),
+                        bgcolor=ContainerColor(page=page,opacidade=0.5),
+                        blur=(5, 5),
+                        padding=15,
+                        height=page.height * 0.6,
+                        width=page.width,
+                        margin=0,
+
+                        content=ft.Column(
+                            controls=[
+                                #Controles do dialogo
+                                ft.Row(
+                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                    controls=[
+                                        ft.Text(local["Titulo"], size=15, weight=ft.FontWeight.BOLD),
+                                        ft.Icon(icon=ft.Icons.LOCATION_ON_ROUNDED, color=CorDeFundoSalva(), size=25),
+                                    ]
+                                ),
+                                ft.Divider(),
+                                ft.Row(
+                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                    controls=[
+                                        ft.Text(f'Latitude: {MapView._FormatarCoordenada(local["Latitude"])}', size=12),
+                                        ft.Text(f'Longitude: {MapView._FormatarCoordenada(local["Longitude"])}', size=12),
+                                    ]
+                                ),
+                                ft.Divider(),
+                                ft.Row(
+                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                    controls=[
+                                        texto_distancia,
+                                        ft.Text(f'ID: {local["id"]}', size=12),
+                                    ]
+                                ),
+                                ft.Text(f'Autor: {local["NomeCriador"]}', size=12),
+                                ft.Divider(),
+                                ft.Text(local["Descrição"], size=12, selectable=True),
+                                #Conteúdo do dialogo
+
+                            ]
+                        )
+                    )
+                ),
+
+
+                #Reservar e mandar e-mail
+                ft.Container(
+                    action=ft.OpenUrl(link, target=ft.UrlTarget.BLANK),
+                    on_click=lambda e: ReservarEMandarEmail(),
+                    margin=ft.Margin.only(left=10,right=10),
+                    padding=0,
+                    content=ft.Container(
+                        border_radius=ft.BorderRadius.all(20),
+                        bgcolor=ContainerColor(page=page,opacidade=0.5),
+                        blur=(5, 5),
+                        padding=0,
+                        height=50,
+                        width=page.width,
+                        margin=0,
+
+                        content=ft.Row(
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            controls=[
+                                ft.Text('Reservar e mandar e-mail',size=20),
+                            ]
+                        )
+                    )
+                ),
+                #Cancelar
+                ft.Container(
+                    on_click=lambda e: Fechar(),
+                    margin=ft.Margin.only(left=10,right=10),
+                    padding=0,
+                    content=ft.Container(
+                        border_radius=ft.BorderRadius.all(20),
+                        bgcolor=ContainerColor(page=page,opacidade=0.5),
+                        blur=(5, 5),
+                        padding=0,
+                        height=50,
+                        width=page.width,
+                        margin=0,
+
+                        content=ft.Row(
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            controls=[
+                                ft.Text('Cancelar',size=20),
+                            ]
+                        )
+                    )
+                ),
+
+                
+            ]
+        )
+    )
+    
+    page.overlay.append(sheet)
+    sheet.open = True
+    if distancia is None:
+        page.run_task(ObterLocalizacao)
+
+
+
 def Cabecalho(
             titulo,
             page,
@@ -105,7 +267,7 @@ def Cabecalho(
     return ft.Column(controls=[ft.Container(height=90,margin=-10,
         content=ft.Container(alignment=ft.Alignment.BOTTOM_CENTER,
             padding=ft.Padding.only(left=10, right=10, bottom=10),
-            blur=(10, 10),
+            blur=(5, 5),
             content=ft.Row(
                 controls=[
                     ft.IconButton(
@@ -127,7 +289,7 @@ def Cabecalho(
 def TextColor(page,opacidade:float|int=1):
     """Retorna a cor do container de acordo com o tema de cor do dispositivo"""
 
-    if page.theme_mode == ft.ThemeMode.DARK:
+    if page.platform_brightness == ft.Brightness.DARK:
         container_color = ft.Colors.WHITE
     else:
         container_color = ft.Colors.BLACK_87
@@ -137,7 +299,7 @@ def TextColor(page,opacidade:float|int=1):
 def ContainerColor(page,opacidade:float|int=1):
     """Retorna a cor do container de acordo com o tema de cor do dispositivo"""
 
-    if page.theme_mode == ft.ThemeMode.LIGHT:
+    if page.platform_brightness == ft.Brightness.LIGHT:
         container_color = ft.Colors.WHITE
     else:
         container_color = ft.Colors.BLACK_87
