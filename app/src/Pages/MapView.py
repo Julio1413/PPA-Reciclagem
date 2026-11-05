@@ -21,13 +21,13 @@ def _FormatarCoordenada(valor):
     return ''.join(resultado)
 
 
-async def Mapa(page):
+async def Mapa(page,titulo = 'Mapa Geral',marcadores=None, Adicionar_ponto=True):
     
     credenciais = Auth.ObterSessao()
-    marcadores_carregar = Supabase.LerTabela('PontosColeta', {'Reservado': 'eq.False'})
-    print(marcadores_carregar)
-
-    marcadores = []
+    if not marcadores:
+        marcadores_carregar = Supabase.LerTabela('PontosColeta', {'Reservado': 'eq.False'})
+        print(marcadores_carregar)
+        marcadores = []
 
     if marcadores_carregar is None:
         raise RuntimeError('Não foi possível carregar os pontos de coleta.')
@@ -260,7 +260,7 @@ async def Mapa(page):
     mapa = ftm.Map(
         max_zoom=20,
         min_zoom=15,
-        on_long_press=SelecionarLocal,
+        on_long_press=SelecionarLocal if Adicionar_ponto else None,
         initial_zoom=15,
         expand=True,
         layers=[
@@ -309,7 +309,7 @@ async def Mapa(page):
                         content=mapa
                     ),
                     Ui.Cabecalho(
-                        titulo='Mapa',
+                        titulo=titulo,
                         page=page,
                         icone=ft.Icons.MAP_ROUNDED,
                         icone_btn=ft.Icons.ARROW_BACK_IOS_ROUNDED,

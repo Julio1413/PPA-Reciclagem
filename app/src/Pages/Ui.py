@@ -147,9 +147,22 @@ def Sheet(e,page,distancia=None):
 
     sheet = ft.CupertinoBottomSheet(
         content=ft.Column(
-            height=page.height * 0.785,
+            height=page.height * 0.792,
             spacing=10,
             controls=[
+                ft.Row(
+                    width=page.width,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    controls=[
+                        ft.Container(
+                            height=4,
+                            width=page.width*0.2,
+                            bgcolor=ft.Colors.with_opacity(0.6, ft.Colors.GREY),
+                            border_radius=20,
+                            margin=-5,
+                        )
+                    ]
+                ),
                 ft.Container(
                     margin=ft.Margin.only(left=10,right=10),
                     padding=0,

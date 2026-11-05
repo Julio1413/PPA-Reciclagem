@@ -152,6 +152,26 @@ def Inicio (page):
                                     )
                                 )
                             ),
+                            ft.Button(
+                                on_click=lambda _:Ui.IrPara('/mapa',page),
+                                style=ft.ButtonStyle(padding=-10),
+                                height=70,
+                                bgcolor=ft.Colors.TRANSPARENT,
+                                content=ft.Container(
+                                    height=60,
+                                    padding=10,
+                                    border_radius=12,
+                                    bgcolor=Ui.CorDeFundoSalva(),
+                                    content=ft.Row(
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                        controls=[
+                                            ft.Icon(icon=ft.Icons.STICKY_NOTE_2_ROUNDED, color=ft.Colors.WHITE,size=30),
+                                            ft.Text('Minha atividade',color=ft.Colors.WHITE,size=20,weight=ft.FontWeight.BOLD),
+                                            ft.Icon(icon=ft.Icons.MAP_ROUNDED, color=ft.Colors.TRANSPARENT,size=30),
+                                        ]
+                                    )
+                                )
+                            ),
                             ft.Placeholder(color=ft.Colors.TRANSPARENT, height=10),
                             ft.Text('Pontos em um raio de 1 Km'),
                             ft.Divider(),
