@@ -313,7 +313,11 @@ async def Mapa(page,titulo = 'Mapa Geral',marcadores=None, Adicionar_ponto=True)
                         page=page,
                         icone=ft.Icons.MAP_ROUNDED,
                         icone_btn=ft.Icons.ARROW_BACK_IOS_ROUNDED,
-                        destino='/'
+                        destino='/',
+                        fundo=ft.Colors.with_opacity(
+                            0.96,
+                            Ui.COR_SUPERFICIE_ESCURA,
+                        ),
                     ),
                     ft.Column(
                         alignment=ft.MainAxisAlignment.END,
@@ -323,14 +327,19 @@ async def Mapa(page,titulo = 'Mapa Geral',marcadores=None, Adicionar_ponto=True)
                             ft.Container(
                                 ink=True,
                                 on_click=lambda _:PontoZero(),
-                                bgcolor=Ui.ContainerColor(page=page,opacidade=0.5),
-                                blur=(5,5),
-                                border_radius=20,
-                                padding=10,
+                                width=56,
+                                height=56,
+                                margin=ft.Margin.only(
+                                    right=Ui.ESPACO_MEDIO,
+                                    bottom=Ui.ESPACO_MEDIO,
+                                ),
+                                bgcolor=Ui.COR_SUPERFICIE_ELEVADA,
+                                border=ft.Border.all(1, Ui.COR_CONTORNO),
+                                border_radius=28,
                                 content=ft.Icon(
                                     icon=ft.Icons.MY_LOCATION_ROUNDED,
-                                    size=25,
-                                    color=Ui.TextColor(page)
+                                    size=24,
+                                    color=Ui.COR_DESTAQUE,
                                 )
                             ),
 

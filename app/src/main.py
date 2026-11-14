@@ -2,7 +2,12 @@ import flet as ft
 import os
 from Ferramentas import Ferramentas, Supabase
 os.makedirs(Ferramentas.DefinirPasta(), exist_ok=True)
-from Pages.Ui import NomeDoApp, ObterLocalizacaoCompleta
+from Pages.Ui import (
+    COR_PRIMARIA,
+    COR_SUPERFICIE_ESCURA,
+    NomeDoApp,
+    ObterLocalizacaoCompleta,
+)
 from Ferramentas import Auth
 
 
@@ -18,7 +23,7 @@ def main(page: ft.Page):
 
     ObterLocalizacaoCompleta(page, on_result=_AoReceberLocalizacao)
     page.title = NomeDoApp()
-    page.theme_mode = ft.ThemeMode.SYSTEM
+    page.theme_mode = ft.ThemeMode.DARK
     page.scroll = ft.ScrollMode.HIDDEN
 
     
@@ -28,7 +33,21 @@ def main(page: ft.Page):
     
     page.theme = ft.Theme(
         font_family='Poppins',
-        color_scheme_seed=ft.Colors.GREEN,
+        color_scheme_seed=COR_PRIMARIA,
+        use_material3=True,
+        scaffold_bgcolor=COR_SUPERFICIE_ESCURA,
+        page_transitions=ft.PageTransitionsTheme(
+            linux=ft.PageTransitionTheme.OPEN_UPWARDS,
+            windows=ft.PageTransitionTheme.OPEN_UPWARDS,
+            android=ft.PageTransitionTheme.OPEN_UPWARDS,
+            ios=ft.PageTransitionTheme.OPEN_UPWARDS,
+        ),
+    )
+    page.dark_theme = ft.Theme(
+        font_family='Poppins',
+        color_scheme_seed=COR_PRIMARIA,
+        use_material3=True,
+        scaffold_bgcolor=COR_SUPERFICIE_ESCURA,
         page_transitions=ft.PageTransitionsTheme(
             linux=ft.PageTransitionTheme.OPEN_UPWARDS,
             windows=ft.PageTransitionTheme.OPEN_UPWARDS,

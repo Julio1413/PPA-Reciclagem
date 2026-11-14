@@ -9,6 +9,18 @@ from Pages import MapView
 print('='*20)
 print('Módulo Ui')
 
+ESPACO_PEQUENO = 8
+ESPACO_MEDIO = 16
+ESPACO_GRANDE = 24
+RAIO_CARTAO = 16
+COR_PRIMARIA = ft.Colors.GREEN_800
+COR_SUPERFICIE_ESCURA = "#151B17"
+COR_SUPERFICIE_ELEVADA = "#222B25"
+COR_TEXTO_SECUNDARIO = "#C2CCC5"
+COR_DESTAQUE = "#B7E4C7"
+COR_CONTORNO = "#59645C"
+
+
 _PERMISSOES_LOCALIZACAO_OK = (
     getattr(ftg.GeolocatorPermissionStatus, "WHILE_IN_USE", "while_in_use"),
     getattr(ftg.GeolocatorPermissionStatus, "ALWAYS", "always"),
@@ -97,13 +109,22 @@ def IrPara(rota, page):
     page.update()
 
 
+def _TemaEscuro(page):
+    return page.theme_mode == ft.ThemeMode.DARK or (
+        page.theme_mode == ft.ThemeMode.SYSTEM
+        and page.platform_brightness == ft.Brightness.DARK
+    )
+
+
 def Sheet(e,page,distancia=None):
     local = e.control.data
     texto_distancia = ft.Text(
         f'Distância: {distancia:.2f} km'
         if distancia is not None
         else 'Calculando distância...',
-        size=12,
+        size=14,
+        weight=ft.FontWeight.BOLD,
+        color=COR_DESTAQUE,
     )
 
     async def ObterLocalizacao():
@@ -122,33 +143,36 @@ def Sheet(e,page,distancia=None):
             page.update()
             raise
 
-    #Fechar diálogo
     def Fechar():
-        sheet.open=False
+        sheet.open = False
+        page.update()
     
     destinatario = local['EmailCriador']
     assunto = quote("Solicitação de mais informações.")
-    mensagem = quote(f'Olá! Sou {Auth.ObterSessao()['nome']} e reservei os materiais de "{local['Titulo']}". Poderia me dar mais informações para a coleta?' )
+    sessao = Auth.ObterSessao()
+    mensagem = quote(
+        f'Olá! Sou {sessao["nome"]} e reservei os materiais de '
+        f'"{local["Titulo"]}". Poderia me dar mais informações para a coleta?'
+    )
 
     link = f"mailto:{destinatario}?subject={assunto}&body={mensagem}"
     
 
     def ReservarEMandarEmail():
-        
         if Supabase.AtualizarLinha(
             nome_tabela='PontosColeta',
             filtros={'id': f"eq.{local['id']}"},
             novos_dados={'Reservado': 'True', 'ReservadoPor': Auth.ObterSessao()['email']},
         ):
             pass
-        sheet.open = False
-        page.update()
+        Fechar()
 
 
     sheet = ft.CupertinoBottomSheet(
         content=ft.Column(
-            height=page.height * 0.792,
-            spacing=10,
+            height=page.height * 0.84,
+            spacing=ESPACO_MEDIO,
+            scroll=ft.ScrollMode.AUTO,
             controls=[
                 ft.Row(
                     width=page.width,
@@ -156,109 +180,146 @@ def Sheet(e,page,distancia=None):
                     controls=[
                         ft.Container(
                             height=4,
-                            width=page.width*0.2,
-                            bgcolor=ft.Colors.with_opacity(0.6, ft.Colors.GREY),
-                            border_radius=20,
-                            margin=-5,
+                            width=40,
+                            bgcolor=COR_TEXTO_SECUNDARIO,
+                            border_radius=4,
+                            margin=ESPACO_PEQUENO,
                         )
                     ]
                 ),
                 ft.Container(
-                    margin=ft.Margin.only(left=10,right=10),
-                    padding=0,
-                    content=ft.Container(
-                        border_radius=ft.BorderRadius.all(20),
-                        bgcolor=ContainerColor(page=page,opacidade=0.5),
-                        blur=(5, 5),
-                        padding=15,
-                        height=page.height * 0.6,
-                        width=page.width,
-                        margin=0,
-
-                        content=ft.Column(
-                            controls=[
-                                #Controles do dialogo
-                                ft.Row(
-                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    bgcolor=COR_SUPERFICIE_ELEVADA,
+                    border_radius=RAIO_CARTAO,
+                    padding=ESPACO_GRANDE,
+                    margin=ft.Margin.only(left=ESPACO_MEDIO, right=ESPACO_MEDIO),
+                    content=ft.Column(
+                        spacing=ESPACO_MEDIO,
+                        controls=[
+                            ft.Row(
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                vertical_alignment=ft.CrossAxisAlignment.START,
+                                controls=[
+                                    ft.Text(
+                                        local["Titulo"],
+                                        size=22,
+                                        weight=ft.FontWeight.BOLD,
+                                        expand=True,
+                                    ),
+                                    ft.Icon(
+                                        ft.Icons.LOCATION_ON_ROUNDED,
+                                        color=COR_DESTAQUE,
+                                        size=28,
+                                    ),
+                                ],
+                            ),
+                            ft.Container(
+                                bgcolor=COR_SUPERFICIE_ESCURA,
+                                border_radius=RAIO_CARTAO,
+                                padding=ESPACO_MEDIO,
+                                content=ft.Row(
+                                    spacing=ESPACO_PEQUENO,
                                     controls=[
-                                        ft.Text(local["Titulo"], size=15, weight=ft.FontWeight.BOLD),
-                                        ft.Icon(icon=ft.Icons.LOCATION_ON_ROUNDED, color=CorDeFundoSalva(), size=25),
-                                    ]
-                                ),
-                                ft.Divider(),
-                                ft.Row(
-                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                                    controls=[
-                                        ft.Text(f'Latitude: {MapView._FormatarCoordenada(local["Latitude"])}', size=12),
-                                        ft.Text(f'Longitude: {MapView._FormatarCoordenada(local["Longitude"])}', size=12),
-                                    ]
-                                ),
-                                ft.Divider(),
-                                ft.Row(
-                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                                    controls=[
+                                        ft.Icon(
+                                            ft.Icons.NEAR_ME_ROUNDED,
+                                            color=COR_DESTAQUE,
+                                            size=20,
+                                        ),
                                         texto_distancia,
-                                        ft.Text(f'ID: {local["id"]}', size=12),
-                                    ]
+                                    ],
                                 ),
-                                ft.Text(f'Autor: {local["NomeCriador"]}', size=12),
-                                ft.Divider(),
-                                ft.Text(local["Descrição"], size=12, selectable=True),
-                                #Conteúdo do dialogo
-
-                            ]
-                        )
-                    )
+                            ),
+                            ft.Column(
+                                spacing=ESPACO_PEQUENO,
+                                controls=[
+                                    ft.Text(
+                                        "Sobre este ponto",
+                                        size=16,
+                                        weight=ft.FontWeight.BOLD,
+                                    ),
+                                    ft.Text(
+                                        local["Descrição"],
+                                        size=15,
+                                        color=COR_TEXTO_SECUNDARIO,
+                                        selectable=True,
+                                    ),
+                                ],
+                            ),
+                            ft.Row(
+                                spacing=ESPACO_PEQUENO,
+                                controls=[
+                                    ft.Icon(
+                                        ft.Icons.PERSON_OUTLINE_ROUNDED,
+                                        color=COR_TEXTO_SECUNDARIO,
+                                        size=20,
+                                    ),
+                                    ft.Text(
+                                        f'Publicado por {local["NomeCriador"]}',
+                                        size=14,
+                                        color=COR_TEXTO_SECUNDARIO,
+                                    ),
+                                ],
+                            ),
+                            ft.Text(
+                                " · ".join(
+                                    (
+                                        f'Lat. {MapView._FormatarCoordenada(local["Latitude"])}',
+                                        f'Lon. {MapView._FormatarCoordenada(local["Longitude"])}',
+                                        f'ID {local["id"]}',
+                                    )
+                                ),
+                                size=11,
+                                color=COR_TEXTO_SECUNDARIO,
+                                selectable=True,
+                            ),
+                        ],
+                    ),
                 ),
-
-
-                #Reservar e mandar e-mail
                 ft.Container(
                     action=ft.OpenUrl(link, target=ft.UrlTarget.BLANK),
                     on_click=lambda e: ReservarEMandarEmail(),
-                    margin=ft.Margin.only(left=10,right=10),
-                    padding=0,
-                    content=ft.Container(
-                        border_radius=ft.BorderRadius.all(20),
-                        bgcolor=ContainerColor(page=page,opacidade=0.5),
-                        blur=(5, 5),
-                        padding=0,
-                        height=50,
-                        width=page.width,
-                        margin=0,
-
-                        content=ft.Row(
-                            alignment=ft.MainAxisAlignment.CENTER,
-                            controls=[
-                                ft.Text('Reservar e mandar e-mail',size=20),
-                            ]
-                        )
-                    )
+                    ink=True,
+                    bgcolor=CorDeFundoSalva(),
+                    border_radius=RAIO_CARTAO,
+                    height=56,
+                    margin=ft.Margin.only(left=ESPACO_MEDIO, right=ESPACO_MEDIO),
+                    content=ft.Row(
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=ESPACO_PEQUENO,
+                        controls=[
+                            ft.Icon(ft.Icons.EMAIL_ROUNDED, color=ft.Colors.WHITE),
+                            ft.Text(
+                                'Reservar e mandar e-mail',
+                                size=16,
+                                weight=ft.FontWeight.BOLD,
+                                color=ft.Colors.WHITE,
+                            ),
+                        ],
+                    ),
                 ),
-                #Cancelar
                 ft.Container(
-                    on_click=lambda e: Fechar(),
-                    margin=ft.Margin.only(left=10,right=10),
-                    padding=0,
-                    content=ft.Container(
-                        border_radius=ft.BorderRadius.all(20),
-                        bgcolor=ContainerColor(page=page,opacidade=0.5),
-                        blur=(5, 5),
-                        padding=0,
-                        height=50,
-                        width=page.width,
-                        margin=0,
-
-                        content=ft.Row(
-                            alignment=ft.MainAxisAlignment.CENTER,
-                            controls=[
-                                ft.Text('Cancelar',size=20),
-                            ]
-                        )
-                    )
+                    on_click=lambda _: Fechar(),
+                    ink=True,
+                    border=ft.Border.all(1, COR_CONTORNO),
+                    border_radius=RAIO_CARTAO,
+                    height=56,
+                    margin=ft.Margin.only(
+                        left=ESPACO_MEDIO,
+                        right=ESPACO_MEDIO,
+                        bottom=ESPACO_GRANDE,
+                    ),
+                    content=ft.Row(
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        spacing=ESPACO_PEQUENO,
+                        controls=[
+                            ft.Icon(ft.Icons.CLOSE_ROUNDED, color=COR_TEXTO_SECUNDARIO),
+                            ft.Text(
+                                'Cancelar',
+                                size=15,
+                                color=COR_TEXTO_SECUNDARIO,
+                            ),
+                        ],
+                    ),
                 ),
-
-                
             ]
         )
     )
@@ -276,11 +337,17 @@ def Cabecalho(
             destino="/",                   
             icone=ft.Icons.RECYCLING_ROUNDED,
             icone_btn=ft.Icons.ARROW_BACK_IOS_ROUNDED,
+            fundo=None,
             ):
-    return ft.Column(controls=[ft.Container(height=90,margin=-10,
+    return ft.Column(controls=[ft.Container(
+        height=90,
+        margin=-10 if fundo is None else 0,
         content=ft.Container(alignment=ft.Alignment.BOTTOM_CENTER,
+            width=page.width,
             padding=ft.Padding.only(left=10, right=10, bottom=10),
-            blur=(5, 5),
+            bgcolor=fundo,
+            border_radius=RAIO_CARTAO if fundo else None,
+            blur=(5, 5) if fundo is None else None,
             content=ft.Row(
                 controls=[
                     ft.IconButton(
@@ -302,7 +369,7 @@ def Cabecalho(
 def TextColor(page,opacidade:float|int=1):
     """Retorna a cor do container de acordo com o tema de cor do dispositivo"""
 
-    if page.platform_brightness == ft.Brightness.DARK:
+    if _TemaEscuro(page):
         container_color = ft.Colors.WHITE
     else:
         container_color = ft.Colors.BLACK_87
@@ -312,10 +379,10 @@ def TextColor(page,opacidade:float|int=1):
 def ContainerColor(page,opacidade:float|int=1):
     """Retorna a cor do container de acordo com o tema de cor do dispositivo"""
 
-    if page.platform_brightness == ft.Brightness.LIGHT:
+    if not _TemaEscuro(page):
         container_color = ft.Colors.WHITE
     else:
-        container_color = ft.Colors.BLACK_87
+        container_color = COR_SUPERFICIE_ELEVADA
     return ft.Colors.with_opacity(opacidade, container_color)
 
 def Container(
