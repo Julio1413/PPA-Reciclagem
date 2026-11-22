@@ -116,7 +116,7 @@ def _TemaEscuro(page):
     )
 
 
-def Sheet(e,page,distancia=None):
+def Sheet(e,page,distancia=None, pode_reservar=True):
     local = e.control.data
     texto_distancia = ft.Text(
         f'Distância: {distancia:.2f} km'
@@ -170,7 +170,7 @@ def Sheet(e,page,distancia=None):
 
     sheet = ft.CupertinoBottomSheet(
         content=ft.Column(
-            height=page.height * 0.84,
+            height=page.height * 0.5,
             spacing=ESPACO_MEDIO,
             scroll=ft.ScrollMode.AUTO,
             controls=[
@@ -276,7 +276,7 @@ def Sheet(e,page,distancia=None):
                 ),
                 ft.Container(
                     action=ft.OpenUrl(link, target=ft.UrlTarget.BLANK),
-                    on_click=lambda e: ReservarEMandarEmail(),
+                    on_click=lambda e: ReservarEMandarEmail() if pode_reservar else None,
                     ink=True,
                     bgcolor=CorDeFundoSalva(),
                     border_radius=RAIO_CARTAO,
@@ -339,33 +339,46 @@ def Cabecalho(
             icone_btn=ft.Icons.ARROW_BACK_IOS_ROUNDED,
             fundo=None,
             ):
-    return ft.Column(controls=[ft.Container(
-        height=90,
-        margin=-10 if fundo is None else 0,
-        content=ft.Container(alignment=ft.Alignment.BOTTOM_CENTER,
-            width=page.width,
-            padding=ft.Padding.only(left=10, right=10, bottom=10),
-            bgcolor=fundo,
-            border_radius=RAIO_CARTAO if fundo else None,
-            blur=(5, 5) if fundo is None else None,
-            content=ft.Row(
-                controls=[
-                    ft.IconButton(
-                        icon_color=ft.Colors.WHITE,
-                        icon=icone_btn,
-                        on_click=lambda _: IrPara(destino, page),   # usa o mesmo caminho robusto do IrPara
-                        icon_size=25,
-                    ),
-                    ft.Text(value=titulo, color=ft.Colors.WHITE, size=20, weight=ft.FontWeight.BOLD),
-                    ft.Icon(icon=icone, color=ft.Colors.WHITE, size=30),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+    return ft.Column(
+        controls=[
+            
+            ft.Placeholder(color=ft.Colors.TRANSPARENT, height=5),
+            ft.Container(
+                bgcolor=fundo if fundo else CorDeFundoSalva(),
+                padding=10,
+                border_radius=16,
+                content=ft.Row(
+                    controls=[
+                        ft.IconButton(
+                            icon_color=ft.Colors.WHITE,
+                            icon=icone_btn,
+                            on_click=lambda _: IrPara(destino, page),
+                            icon_size=25,
+                        ),
+                        ft.Text(
+                            value=titulo,
+                            color=ft.Colors.WHITE,
+                            size=20,
+                            weight=ft.FontWeight.BOLD,
+                        ),
+                        ft.Icon(icon=icone, color=ft.Colors.WHITE, size=30),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                ),
             ),
-            height=50,
-        ),
-    ),
-    ft.Placeholder(color=ft.Colors.TRANSPARENT, height=5)
-                               ])
+        ]
+    )
+
+
+
+def CorPagina (page):
+    if _TemaEscuro(page):
+        container_color = ft.Colors.BLACK_87
+    else:
+        container_color = ft.Colors.WHITE
+    return 
+
+
 def TextColor(page,opacidade:float|int=1):
     """Retorna a cor do container de acordo com o tema de cor do dispositivo"""
 

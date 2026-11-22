@@ -588,7 +588,7 @@ def VerificarUsuarioExistente():
         if r.status_code == 200:
             return True
 
-        if r.status_code == 404:
+        if r.status_code in (403, 404):
             return False
 
         if r.status_code != 401:

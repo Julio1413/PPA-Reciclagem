@@ -89,6 +89,11 @@ def main(page: ft.Page):
             page.run_task(_AbrirMapa)
             return
 
+        elif page.route == '/minhaatividade':
+            from Pages import MyActivity
+            page.views.clear()
+            MyActivity.MinhaAtividade(page)
+
         page.update()
 
     page.on_route_change = route

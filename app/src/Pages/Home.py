@@ -309,7 +309,7 @@ def Inicio(page):
 
     page.views.append(
         ft.View(
-            bgcolor=Ui.COR_SUPERFICIE_ESCURA,
+            bgcolor=Ui.CorPagina(page),
             route="/",
             controls=[
                 ft.Column(
@@ -365,7 +365,7 @@ def Inicio(page):
                                                 "Minha atividade",
                                                 "Acompanhe suas ações",
                                                 ft.Icons.STICKY_NOTE_2_ROUNDED,
-                                                "/mapa",
+                                                "/minhaatividade",
                                             ),
                                         ],
                                     ),

@@ -23,7 +23,8 @@ async def ObterLocalizacao(page: ft.Page):
         )
 
         # Adiciona o Geolocator à view atual
-        page.views[-1].controls.append(geo)
+        #page.views[-1].controls.append(geo)
+        page.views[-1].services.append(geo)
 
         # IMPORTANTE:
         # Envia o controle para o cliente antes de invocar

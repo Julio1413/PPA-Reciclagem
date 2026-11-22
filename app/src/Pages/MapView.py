@@ -21,7 +21,7 @@ def _FormatarCoordenada(valor):
     return ''.join(resultado)
 
 
-async def Mapa(page,titulo = 'Mapa Geral',marcadores=None, Adicionar_ponto=True):
+async def Mapa(page,titulo = 'Mapa Geral',marcadores=None, Adicionar_ponto=True,reservar=True):
     
     credenciais = Auth.ObterSessao()
     if not marcadores:
