@@ -292,6 +292,7 @@ async def Mapa(page,titulo = 'Mapa Geral',marcadores=None, Adicionar_ponto=True,
                     longitude=loc['longitude'],
                 )
             )
+            await mapa.reset_rotation()
 
         page.run_task(_MoverEAplicarZoom)
 

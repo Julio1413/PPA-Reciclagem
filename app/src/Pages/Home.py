@@ -259,7 +259,7 @@ def Inicio(page):
             )
 
     sessao = Auth.ObterSessao()
-    nome = sessao.get("nome", "pessoa")
+    nome = sessao.get("nome", "pessoa").strip().split()[0]
 
     def CartaoAcao(titulo, descricao, icone, rota):
         return ft.Container(

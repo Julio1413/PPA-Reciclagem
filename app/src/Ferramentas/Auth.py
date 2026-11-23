@@ -588,10 +588,10 @@ def VerificarUsuarioExistente():
         if r.status_code == 200:
             return True
 
-        if r.status_code in (403, 404):
+        if r.status_code == 404:
             return False
 
-        if r.status_code != 401:
+        if r.status_code not in (401, 403):
             print(f"ERRO VerificarUsuarioExistente: status {r.status_code}")
             return None
 
@@ -636,7 +636,7 @@ def VerificarUsuarioExistente():
         if resposta_usuario.status_code == 200:
             return True
 
-        if resposta_usuario.status_code in (401, 404):
+        if resposta_usuario.status_code in (401, 403, 404):
             return False
 
         print(

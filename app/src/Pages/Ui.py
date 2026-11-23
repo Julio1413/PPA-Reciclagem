@@ -342,7 +342,7 @@ def Cabecalho(
     return ft.Column(
         controls=[
             
-            ft.Placeholder(color=ft.Colors.TRANSPARENT, height=5),
+            ft.Placeholder(color=ft.Colors.TRANSPARENT, height=7),
             ft.Container(
                 bgcolor=fundo if fundo else CorDeFundoSalva(),
                 padding=10,
