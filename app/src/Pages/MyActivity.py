@@ -10,17 +10,6 @@ def MinhaAtividade(page):
     email = sessao.get("email")
 
 
-    #Lendo as tabelas
-    
-    reservado = Supabase.LerTabela('PontosColeta', filtros={"ReservadoPor":f'eq.{email}', "Finalizado":"eq.False"})
-    disponibilizado = Supabase.LerTabela('PontosColeta', filtros={"EmailCriador":f'eq.{email}', "Finalizado":"eq.False"})
-    finalizado = Supabase.LerTabela(
-        'PontosColeta',
-        filtros={
-            "Finalizado": "eq.True",
-            "or": f"(ReservadoPor.eq.{email},EmailCriador.eq.{email})",
-        },
-    )
 
     # Ferramentas
     def CriarCartaoLocal(local):
@@ -108,9 +97,36 @@ def MinhaAtividade(page):
                 ),
             )
     
+        
+        
+        
+        
+    #Lendo as tabelas
     
-    
-    
+    reservado = Supabase.LerTabela('PontosColeta', filtros={"ReservadoPor":f'eq.{email}', "Finalizado":"eq.False"})
+    ColunaReservado = ft.Column(scroll=ft.ScrollMode.AUTO, controls=[], height=page.height)
+
+    for reserva in reservado:
+        ColunaReservado.controls.append(CriarCartaoLocal(reserva))
+
+
+
+    disponibilizado = Supabase.LerTabela('PontosColeta', filtros={"EmailCriador":f'eq.{email}', "Finalizado":"eq.False"})
+    ColunaDisponibilizado = ft.Column(scroll=ft.ScrollMode.AUTO, controls=[], height=page.height)
+
+    for disponibilizacao in disponibilizado:
+        ColunaDisponibilizado.controls.append(CriarCartaoLocal(disponibilizacao))
+
+
+    finalizado = Supabase.LerTabela('PontosColeta',filtros={"Finalizado": "eq.True","or": f"(ReservadoPor.eq.{email},EmailCriador.eq.{email})",},)
+    ColunaFinalizado = ft.Column(scroll=ft.ScrollMode.AUTO, controls=[], height=page.height)
+
+    for operacao in finalizado:
+        ColunaFinalizado.controls.append(CriarCartaoLocal(operacao))
+
+
+
+
     
     
 
@@ -201,21 +217,30 @@ def MinhaAtividade(page):
                                         padding=5,
                                         expand=True,
                                         content=ft.Column(
-                                            ft.Divider()
+                                            controls=[
+                                                ft.Divider(),
+                                                ColunaReservado,
+                                            ]
                                         )
                                     ),
                                     ft.Container(
                                         padding=5,
                                         expand=True,
                                         content=ft.Column(
-                                            ft.Divider()
+                                            controls=[
+                                                ft.Divider(),
+                                                ColunaDisponibilizado,
+                                            ]
                                         )
                                     ),
                                     ft.Container(
                                         padding=5,
                                         expand=True,
                                         content=ft.Column(
-                                            ft.Divider()
+                                            controls=[
+                                                ft.Divider(),
+                                                ColunaFinalizado,
+                                            ]
                                         )
                                     ),
                                 ],

@@ -306,7 +306,7 @@ async def Mapa(page,titulo = 'Mapa Geral',marcadores=None, Adicionar_ponto=True,
                     ft.Container(
                         padding=-10,
                         width=page.width,
-                        height=page.height *0.973,
+                        height=page.height,
                         content=mapa
                     ),
                     Ui.Cabecalho(

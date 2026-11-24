@@ -28,7 +28,7 @@ def main(page: ft.Page):
 
     
     page.fonts = {
-        'Poppins':'assets/fonts/Poppins.ttf'
+        'Poppins':'/fonts/Poppins.ttf',
     }
     
     page.theme = ft.Theme(
