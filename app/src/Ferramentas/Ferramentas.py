@@ -5,6 +5,11 @@ import json
 print('='*20)
 print('Módulo Ferramentas')
 
+
+def HoraData() ->str:
+    import datetime
+    return datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
 _Pasta_Global = None
 def DefinirPasta():
     global _Pasta_Global

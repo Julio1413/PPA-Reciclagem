@@ -266,6 +266,7 @@ def Sheet(e,page,distancia=None, pode_reservar=True):
                                         ),
                                     ],
                                 ),
+                                ft.Text(f"Criado em {local['Criado']}", size=14,color=COR_TEXTO_SECUNDARIO,selectable=True),
                                 ft.Text(
                                     " · ".join(
                                         (
@@ -611,3 +612,267 @@ def ObterLocalizacaoCompleta(page, on_result=None):
             on_result(resultado)
 
     page.run_task(_FluxoLocalizacaoCompleta)
+
+
+
+
+
+def SheetReservado(e,page,distancia=None, pode_reservar=True):
+    local = e.control.data
+    texto_distancia = ft.Text(
+        f'Distância: {distancia:.2f} km'
+        if distancia is not None
+        else 'Calculando distância...',
+        size=14,
+        weight=ft.FontWeight.BOLD,
+        color=COR_DESTAQUE,
+    )
+
+    async def ObterLocalizacao():
+        from Pages import MapUtilities
+        nonlocal distancia
+        try:
+            loc = await MapUtilities.ObterLocalizacao(page)
+            distancia = Ferramentas.CalcularDistancia(
+                (float(local['Latitude']), float(local['Longitude'])),
+                (float(loc['latitude']), float(loc['longitude']))
+            )
+            texto_distancia.value = f'Distância: {distancia:.2f} km'
+            page.update()
+        except Exception:
+            texto_distancia.value = 'Distância indisponível'
+            page.update()
+            raise
+
+    def Fechar():
+        sheet.open = False
+        page.update()
+    
+    destinatario = local['EmailCriador']
+    assunto = quote("Nova mensagem.")
+    sessao = Auth.ObterSessao()
+    mensagem = quote(
+        f'Olá! Sou {sessao["nome"]}. Esta mensagem é referente ao material de ID n° {local['id']}. \n'
+        f'"{local["Titulo"]}"'
+    )
+
+    link = f"mailto:{destinatario}?subject={assunto}&body={mensagem}"
+    
+
+    def MarcarColetado():
+        if Supabase.AtualizarLinha(
+                nome_tabela='PontosColeta',
+                filtros={'id': f"eq.{local['id']}"},
+                novos_dados={'Finalizado': 'True', 'FinalizadoEm': Ferramentas.HoraData()},
+            ):
+                page.show_dialog(ft.SnackBar(ft.Text("Material coletado com sucesso!"), bgcolor=ft.Colors.GREEN))
+        Fechar()
+
+    sheet = ft.CupertinoBottomSheet(
+        content=ft.Container(
+            #on_click=lambda _: Fechar(),
+            blur=(5,5),
+            height=page.height,
+            width=page.width,
+            content=ft.Column(
+                height=page.height,
+                alignment=ft.MainAxisAlignment.END,
+                expand=True,
+                spacing=ESPACO_MEDIO,
+                scroll=ft.ScrollMode.AUTO,
+                controls=[
+                    ft.Row(
+                        width=page.width,
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        controls=[
+                            ft.Container(
+                                height=4,
+                                width=40,
+                                bgcolor=COR_TEXTO_SECUNDARIO,
+                                border_radius=4,
+                                margin=ESPACO_PEQUENO,
+                            )
+                        ]
+                    ),
+                    ft.Container(
+                        bgcolor=COR_SUPERFICIE_ELEVADA,
+                        border_radius=RAIO_CARTAO,
+                        padding=ESPACO_GRANDE,
+                        margin=ft.Margin.only(left=ESPACO_MEDIO, right=ESPACO_MEDIO),
+                        content=ft.Column(
+                            spacing=ESPACO_MEDIO,
+                            controls=[
+                                ft.Row(
+                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                    vertical_alignment=ft.CrossAxisAlignment.START,
+                                    controls=[
+                                        ft.Text(
+                                            local["Titulo"],
+                                            size=22,
+                                            weight=ft.FontWeight.BOLD,
+                                            expand=True,
+                                        ),
+                                        ft.Icon(
+                                            ft.Icons.LOCATION_ON_ROUNDED,
+                                            color=COR_DESTAQUE,
+                                            size=28,
+                                        ),
+                                    ],
+                                ),
+                                ft.Container(
+                                    bgcolor=COR_SUPERFICIE_ESCURA,
+                                    border_radius=RAIO_CARTAO,
+                                    padding=ESPACO_MEDIO,
+                                    content=ft.Row(
+                                        spacing=ESPACO_PEQUENO,
+                                        controls=[
+                                            ft.Icon(
+                                                ft.Icons.NEAR_ME_ROUNDED,
+                                                color=COR_DESTAQUE,
+                                                size=20,
+                                            ),
+                                            texto_distancia,
+                                        ],
+                                    ),
+                                ),
+                                ft.Column(
+                                    spacing=ESPACO_PEQUENO,
+                                    controls=[
+                                        ft.Text(
+                                            "Sobre este ponto",
+                                            size=16,
+                                            weight=ft.FontWeight.BOLD,
+                                        ),
+                                        ft.Text(
+                                            local["Descrição"],
+                                            size=15,
+                                            color=COR_TEXTO_SECUNDARIO,
+                                            selectable=True,
+                                        ),
+                                    ],
+                                ),
+                                ft.Row(
+                                    spacing=ESPACO_PEQUENO,
+                                    controls=[
+                                        ft.Icon(
+                                            ft.Icons.PERSON_OUTLINE_ROUNDED,
+                                            color=COR_TEXTO_SECUNDARIO,
+                                            size=20,
+                                        ),
+                                        ft.Text(
+                                            f'Publicado por {local["NomeCriador"]}',
+                                            size=14,
+                                            color=COR_TEXTO_SECUNDARIO,
+                                        ),
+                                    ],
+                                ),
+                                ft.Text(f"Criado em {local['Criado']}", size=14,color=COR_TEXTO_SECUNDARIO,selectable=True),
+                                ft.Text(
+                                    " · ".join(
+                                        (
+                                            f'Lat. {MapView._FormatarCoordenada(local["Latitude"])}',
+                                            f'Lon. {MapView._FormatarCoordenada(local["Longitude"])}',
+                                            f'ID {local["id"]}',
+                                        )
+                                    ),
+                                    size=11,
+                                    color=COR_TEXTO_SECUNDARIO,
+                                    selectable=True,
+                                ),
+                                
+                                ft.Container(
+                                    action=ft.OpenUrl(link, target=ft.UrlTarget.BLANK),
+                                    ink=True,
+                                    bgcolor=CorDeFundoSalva(),
+                                    border_radius=RAIO_CARTAO,
+                                    height=56,width=page.width,
+                                    content=ft.Row(
+                                        alignment=ft.MainAxisAlignment.CENTER,
+                                        spacing=ESPACO_PEQUENO,
+                                        controls=[
+                                            ft.Icon(ft.Icons.EMAIL_ROUNDED, color=ft.Colors.WHITE),
+                                            ft.Text(
+                                                'Mandar e-mail',
+                                                size=16,
+                                                weight=ft.FontWeight.BOLD,
+                                                color=ft.Colors.WHITE,
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                                ft.Container(
+                                    action=ft.OpenUrl(f'https://www.google.com/maps/dir/?api=1&destination={local['Latitude']},{local['Longitude']}', target=ft.UrlTarget.BLANK),
+                                    ink=True,
+                                    bgcolor=CorDeFundoSalva(),
+                                    border_radius=RAIO_CARTAO,
+                                    height=56,width=page.width,
+                                    content=ft.Row(
+                                        alignment=ft.MainAxisAlignment.CENTER,
+                                        spacing=ESPACO_PEQUENO,
+                                        controls=[
+                                            ft.Icon(ft.Icons.NEAR_ME_ROUNDED, color=ft.Colors.WHITE),
+                                            ft.Text(
+                                                'Ir para local',
+                                                size=16,
+                                                weight=ft.FontWeight.BOLD,
+                                                color=ft.Colors.WHITE,
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                                ft.Container(
+                                    ink=True,
+                                    bgcolor=CorDeFundoSalva(),
+                                    on_click= lambda _: MarcarColetado(),
+                                    border_radius=RAIO_CARTAO,
+                                    height=56,width=page.width,
+                                    content=ft.Row(
+                                        alignment=ft.MainAxisAlignment.CENTER,
+                                        spacing=ESPACO_PEQUENO,
+                                        controls=[
+                                            ft.Icon(ft.Icons.RECYCLING_ROUNDED, color=ft.Colors.WHITE),
+                                            ft.Text(
+                                                'Marcar como coletado',
+                                                size=16,
+                                                weight=ft.FontWeight.BOLD,
+                                                color=ft.Colors.WHITE,
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            ],
+                        ),
+                    ),
+                    ft.Container(
+                        on_click=lambda _: Fechar(),
+                        ink=True,
+                        border=ft.Border.all(1, COR_CONTORNO),
+                        border_radius=RAIO_CARTAO,
+                        height=56,
+                        margin=ft.Margin.only(
+                            left=ESPACO_MEDIO,
+                            right=ESPACO_MEDIO,
+                            bottom=ESPACO_GRANDE,
+                        ),
+                        content=ft.Row(
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            spacing=ESPACO_PEQUENO,
+                            controls=[
+                                ft.Icon(ft.Icons.CLOSE_ROUNDED, color=COR_TEXTO_SECUNDARIO),
+                                ft.Text(
+                                    'Cancelar',
+                                    size=15,
+                                    color=COR_TEXTO_SECUNDARIO,
+                                ),
+                            ],
+                        ),
+                    ),
+                ]
+            )
+        )
+        )
+    
+    page.overlay.append(sheet)
+    sheet.open = True
+    if distancia is None:
+        page.run_task(ObterLocalizacao)

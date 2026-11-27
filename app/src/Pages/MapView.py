@@ -1,7 +1,7 @@
 import flet as ft
 import flet_map as ftm
 from Pages import Ui, MapUtilities
-from Ferramentas import Supabase, Auth
+from Ferramentas import Supabase, Auth, Ferramentas
 import datetime
 
 
@@ -22,6 +22,7 @@ def _FormatarCoordenada(valor):
 
 
 async def Mapa(page,titulo = 'Mapa Geral',marcadores=None, Adicionar_ponto=True,reservar=True):
+    page.views.clear()
     
     credenciais = Auth.ObterSessao()
     if not marcadores:
@@ -74,7 +75,7 @@ async def Mapa(page,titulo = 'Mapa Geral',marcadores=None, Adicionar_ponto=True,
                             'Longitude': longitude,
                             'Reservado': 'False',
                             'ReservadoPor' : 'Ninguém',
-                            'Criado': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            'Criado': Ferramentas.HoraData(),
                             'Finalizado': 'False',
                         }
                     )
